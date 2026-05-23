@@ -40,6 +40,11 @@ public abstract class BucketItemMixin {
     @Inject(method = "emptyContents", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/BucketItem;playEmptySound(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/core/BlockPos;)V"))
     private void logFluidPlace(Player player, Level world, BlockPos pos, BlockHitResult blockHitResult, CallbackInfoReturnable<Boolean> cir) {
         BlockPlaceCallback.EVENT.invoker().place(world, pos, this.content.defaultFluidState().createLegacyBlock(), null, player);
+        if (player != null) {
+            BlockPlaceCallback.EVENT.invoker().place(world, pos, this.content.defaultFluidState().createLegacyBlock(), null, player);
+        } else {
+            BlockPlaceCallback.EVENT.invoker().place(world, pos, this.content.defaultFluidState().createLegacyBlock(), null, Sources.REDSTONE);
+        }
     }
 
     @Inject(
@@ -51,7 +56,8 @@ public abstract class BucketItemMixin {
             )
     )
     private void logWaterlog(Player player, Level world, BlockPos pos, BlockHitResult blockHitResult, CallbackInfoReturnable<Boolean> cir, @Local BlockState blockState) {
-        BlockChangeCallback.EVENT.invoker().changeBlock(
+        if (player != null) {
+            BlockChangeCallback.EVENT.invoker().changeBlock(
                 world,
                 pos,
                 blockState,
@@ -59,7 +65,18 @@ public abstract class BucketItemMixin {
                 world.getBlockEntity(pos),
                 world.getBlockEntity(pos),
                 player
-        );
+            );
+        } else {
+            BlockChangeCallback.EVENT.invoker().changeBlock(
+                world,
+                pos,
+                blockState,
+                world.getBlockState(pos),
+                world.getBlockEntity(pos),
+                world.getBlockEntity(pos),
+                Sources.REDSTONE
+            );
+        }
     }
 
     @Inject(method = "use", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;awardStat(Lnet/minecraft/stats/Stat;)V", ordinal = 0))
